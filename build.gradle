@@ -1,0 +1,96 @@
+apply from: file("${rootDir}/gradle/project.gradle")
+apply from: file("${rootDir}/gradle/azure-maven.gradle")
+
+buildscript {
+    repositories {
+        maven {
+            url "https://plugins.gradle.org/m2/"
+        }
+    }
+    dependencies {
+        classpath "io.freefair.gradle:aspectj-plugin:6.6-rc1"
+    }
+}
+
+subprojects {
+    group 'org.example'
+    version '1.0-SNAPSHOT'
+    apply plugin: "io.freefair.aspectj.post-compile-weaving"
+
+    repositories {
+        maven {
+            url 'https://food-truck.github.io/foodtruck-test-automation/maven-repo'
+            content {
+                includeGroupByRegex 'core\\.framework.*'
+            }
+        }
+    }
+
+    if (!plugins.hasPlugin(JavaPlugin)) return
+    sourceSets {
+        dev {
+            java {
+                srcDir 'src/dev/java'
+            }
+            compileClasspath = compileClasspath + sourceSets.main.compileClasspath + sourceSets.test.compileClasspath
+            runtimeClasspath = runtimeClasspath + sourceSets.main.runtimeClasspath + sourceSets.test.runtimeClasspath
+        }
+    }
+
+    tasks.named('pmdDev').configure({
+        group = 'verification'
+        ignoreFailures = true
+    })
+
+    tasks.named('spotbugsDev').configure({
+        group = 'verification'
+        ignoreFailures = true
+    })
+}
+
+def aspectjVersion = '1.9.6'
+def coreNGVersion = '6.13.9'
+
+configure(subprojects.findAll { it -> it.name.endsWith('-service') || it.name.matches(/(-|\w)+-service-v\d+$/) }) {
+    apply from: file("${rootDir}/gradle/app.gradle")
+    dependencies {
+        implementation "core.framework:core-ng:${coreNGVersion}"
+        testImplementation "core.framework:core-ng-test:${coreNGVersion}"
+        implementation "org.aspectj:aspectjrt:${aspectjVersion}"
+        implementation "org.aspectj:aspectjweaver:${aspectjVersion}"
+        implementation 'io.qameta.allure:allure-junit4:2.19.0'
+        implementation 'junit:junit:4.12'
+        implementation 'io.appium:java-client:8.2.0'
+        implementation project(':app-automation-lib')
+    }
+}
+
+configure(subprojects.findAll { it.name.matches('.*-interface') }) {
+    dependencies {
+        implementation "core.framework:core-ng-api:${coreNGVersion}"
+        implementation 'junit:junit:4.12'
+        implementation 'io.qameta.allure:allure-junit4:2.19.0'
+        implementation "org.aspectj:aspectjrt:${aspectjVersion}"
+        implementation "org.aspectj:aspectjweaver:${aspectjVersion}"
+        implementation project(':app-automation-lib')
+    }
+}
+
+configure(project(':wonder-app-automation-service')) {
+    dependencies {
+        implementation project(':wonder-app-automation-interface')
+    }
+}
+
+configure(project(':app-automation-lib')) {
+    dependencies {
+        implementation "core.framework:core-ng:${coreNGVersion}"
+        testImplementation "core.framework:core-ng-test:${coreNGVersion}"
+        implementation "org.aspectj:aspectjrt:${aspectjVersion}"
+        implementation "org.aspectj:aspectjweaver:${aspectjVersion}"
+        implementation 'io.qameta.allure:allure-junit4:2.19.0'
+        implementation 'junit:junit:4.12'
+        implementation 'io.appium:java-client:8.2.0'
+        implementation 'com.microsoft.appcenter:appium-test-extension:1.6'
+    }
+}

@@ -1,0 +1,5 @@
+rootProject.name = 'app-auto-core-ng2'
+include 'wonder-app-automation-service'
+include 'wonder-app-automation-interface'
+include 'app-automation-lib'
+
