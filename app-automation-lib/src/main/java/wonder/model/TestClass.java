@@ -1,8 +1,5 @@
 package wonder.model;
 
-import org.junit.runner.JUnitCore;
-import org.junit.runners.BlockJUnit4ClassRunner;
-
 import java.lang.reflect.Method;
 
 /**
@@ -10,9 +7,9 @@ import java.lang.reflect.Method;
  */
 public class TestClass {
     public final Class<?> clazz;
-    public final ClassTestResult result;
+    public final TestClassResult result;
 
-    public TestClass(Class<?> clazz, ClassTestResult result) {
+    public TestClass(Class<?> clazz, TestClassResult result) {
         this.clazz = clazz;
         this.result = result;
     }

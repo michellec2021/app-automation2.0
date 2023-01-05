@@ -11,7 +11,7 @@ import wonder.exception.BeforeGroupException;
 import wonder.exception.BeforeTestException;
 import wonder.model.TestClass;
 import wonder.model.TestResult;
-import wonder.runner.notifier.EachTestNotifier;
+import wonder.runner.notification.EachTestNotifier;
 
 import java.io.PrintWriter;
 import java.io.StringWriter;

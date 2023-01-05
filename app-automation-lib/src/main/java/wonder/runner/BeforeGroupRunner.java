@@ -9,6 +9,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import wonder.model.TestClass;
 import wonder.model.TestResult;
+import wonder.runner.notification.Listener;
 
 import java.io.PrintWriter;
 import java.io.StringWriter;
@@ -22,12 +23,14 @@ public class BeforeGroupRunner extends Runner {
     private final Statement statement;
     private final TestClass testClass;
     private final Method testMethod;
+    private final Listener listener;
     private Description description;
 
-    public BeforeGroupRunner(TestClass testClass, Method testMethod, Statement statement) {
+    public BeforeGroupRunner(TestClass testClass, Method testMethod, Statement statement, Listener listener) {
         this.testClass = testClass;
         this.testMethod = testMethod;
         this.statement = statement;
+        this.listener = listener;
     }
 
     @Override
@@ -38,19 +41,19 @@ public class BeforeGroupRunner extends Runner {
 
     @Override
     public void run(RunNotifier notifier) {
-        notifier.fireBeforeGroupStarted(description);
+        listener.beforeGroupStarted(description);
         try {
             logger.info("Run Before Group Starts");
             statement.evaluate();
         } catch (Throwable e) {
             testClass.result.setBeforeGroupResult(TestResult.FAILED);
-            notifier.fireFixtureFailed(new Failure(description, e));
+            listener.fixtureFailed(new Failure(description, e));
             StringWriter stringWriter = new StringWriter();
             PrintWriter printWriter = new PrintWriter(stringWriter);
             e.printStackTrace(printWriter);
             logger.error("Run Before Group Exception: " + stringWriter);
         } finally {
-            notifier.fireFixtureFinished();
+            listener.fixtureFinished();
         }
     }
 }

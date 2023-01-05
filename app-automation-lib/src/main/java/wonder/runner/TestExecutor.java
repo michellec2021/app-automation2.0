@@ -7,8 +7,9 @@ import wonder.annotation.AfterGroup;
 import wonder.annotation.AfterTest;
 import wonder.annotation.BeforeGroup;
 import wonder.annotation.BeforeTest;
-import wonder.model.ClassTestResult;
+import wonder.model.TestClassResult;
 import wonder.model.TestClass;
+import wonder.runner.notification.Listener;
 import wonder.utils.AnnotationUtils;
 import wonder.utils.MethodUtils;
 
@@ -33,24 +34,23 @@ public class TestExecutor {
     }
 
     private final Map<Class<?>, List<String>> caseMap;
+    Listener listener = new AllureListener();
 
     public TestExecutor(Map<Class<?>, List<String>> caseMap) {
         this.caseMap = caseMap;
     }
 
-    AllureListener allureListener = new AllureListener();
-
     public void runCases() {
         initReportFolder();
         for (Map.Entry<Class<?>, List<String>> caseEntry : caseMap.entrySet()) {
             List<String> methodNames = caseEntry.getValue();
-            ClassTestResult classTestResult = new ClassTestResult();
-            TestClass testClass = new TestClass(caseEntry.getKey(), classTestResult);
+            TestClassResult testClassResult = new TestClassResult();
+            TestClass testClass = new TestClass(caseEntry.getKey(), testClassResult);
             Object target = testClass.getClassInstance();
             JUnitCore jUnitCore = new JUnitCore();
-            jUnitCore.addListener(allureListener);
+            jUnitCore.addListener(listener);
             if (classContainsFixture(testClass)) {
-                allureListener.onBeforeClass(testClass);
+                listener.onBeforeClass(testClass);
             }
             executeBeforeGroup(jUnitCore, testClass, target);
             for (String methodName : methodNames) {
@@ -61,7 +61,7 @@ public class TestExecutor {
                 jUnitCore.run(new TestCaseRunner(testClass, method, statement));
             }
             executeAfterGroup(jUnitCore, testClass, target);
-            allureListener.onAfterClass(testClass);
+            listener.onAfterClass(testClass);
         }
     }
 
@@ -79,7 +79,7 @@ public class TestExecutor {
         }
         Method beforeGroupMethod = befores.get(0);
         Statement beforeGroupStatement = getMethodStatement(beforeGroupMethod, instance);
-        jUnitCore.run(new BeforeGroupRunner(testClass, beforeGroupMethod, beforeGroupStatement));
+        jUnitCore.run(new BeforeGroupRunner(testClass, beforeGroupMethod, beforeGroupStatement, listener));
     }
 
     private void executeAfterGroup(JUnitCore jUnitCore, TestClass testClass, Object target) {
@@ -89,7 +89,7 @@ public class TestExecutor {
         }
         Method afterGroupMethod = afters.get(0);
         Statement afterGroupStatement = getMethodStatement(afterGroupMethod, target);
-        jUnitCore.run(new AfterGroupRunner(testClass, afterGroupMethod, afterGroupStatement));
+        jUnitCore.run(new AfterGroupRunner(testClass, afterGroupMethod, afterGroupStatement, listener));
     }
 
     private Statement withBeforeTest(TestClass testClass, Statement statement) {

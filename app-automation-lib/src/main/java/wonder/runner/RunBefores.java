@@ -1,7 +1,6 @@
 package wonder.runner;
 
 import org.junit.runners.model.Statement;
-import wonder.model.ClassTestResult;
 import wonder.model.TestClass;
 import wonder.model.TestResult;
 import wonder.utils.MethodUtils;

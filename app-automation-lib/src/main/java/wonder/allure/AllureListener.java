@@ -19,6 +19,7 @@ import org.junit.runner.notification.Failure;
 import org.junit.runner.notification.RunListener;
 import wonder.exception.BaseException;
 import wonder.model.TestClass;
+import wonder.runner.notification.Listener;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -50,21 +51,21 @@ import static io.qameta.allure.util.ResultsUtils.md5;
  */
 @RunListener.ThreadSafe
 @SuppressWarnings({"PMD.ExcessiveImports", "PMD.CouplingBetweenObjects", "checkstyle:ClassFanOutComplexity"})
-public class AllureListener extends RunListener {
-    private final Map<Class<?>, String> classContainerUuidStorage = new ConcurrentHashMap<>();
-    private final ReadWriteLock lock = new ReentrantReadWriteLock();
-
+public class AllureListener extends Listener {
     public static Optional<Status> getStatus(final Throwable throwable) {
         return Optional.ofNullable(throwable)
                 .map(t -> t instanceof AssertionError || t instanceof BaseException ? Status.FAILED : Status.BROKEN);
     }
 
-    private static ThreadLocal<String> testCases = new InheritableThreadLocal<String>() {
+    private static final ThreadLocal<String> testCases = new InheritableThreadLocal<>() {
         @Override
         protected String initialValue() {
             return UUID.randomUUID().toString();
         }
     };
+
+    private final Map<Class<?>, String> classContainerUuidStorage = new ConcurrentHashMap<>();
+    private final ReadWriteLock lock = new ReentrantReadWriteLock();
 
     private final ThreadLocal<String> currentExecutable = ThreadLocal
             .withInitial(() -> UUID.randomUUID().toString());
@@ -93,6 +94,7 @@ public class AllureListener extends RunListener {
         //do nothing
     }
 
+    @Override
     public void onBeforeClass(final TestClass testClass) {
         final String uuid = UUID.randomUUID().toString();
         final TestResultContainer container = new TestResultContainer()
@@ -102,6 +104,7 @@ public class AllureListener extends RunListener {
         setClassContainer(testClass.clazz, uuid);
     }
 
+    @Override
     public void onAfterClass(final TestClass testClass) {
         getClassContainer(testClass.clazz).ifPresent(uuid -> {
             getLifecycle().stopTestContainer(uuid);
@@ -109,6 +112,7 @@ public class AllureListener extends RunListener {
         });
     }
 
+    @Override
     public void beforeGroupStarted(Description description) {
         getClassContainer(getTestClass(description))
                 .ifPresent(parentUuid -> {
@@ -117,6 +121,7 @@ public class AllureListener extends RunListener {
                 });
     }
 
+    @Override
     public void fixtureFinished() {
         final String executableUuid = currentExecutable.get();
         currentExecutable.remove();
@@ -128,6 +133,7 @@ public class AllureListener extends RunListener {
         getLifecycle().stopFixture(executableUuid);
     }
 
+    @Override
     public void fixtureFailed(final Failure failure) {
         final String executableUuid = currentExecutable.get();
         getLifecycle().updateFixture(executableUuid, result -> result
@@ -135,6 +141,7 @@ public class AllureListener extends RunListener {
                 .setStatusDetails(getStatusDetails(failure.getException()).orElse(null)));
     }
 
+    @Override
     public void afterGroupStarted(final Description description) {
         getClassContainer(getTestClass(description))
                 .ifPresent(parentUuid -> {
@@ -227,12 +234,11 @@ public class AllureListener extends RunListener {
     }
 
     private FixtureResult getFixtureResult(String methodName) {
-        final FixtureResult fixtureResult = new FixtureResult()
+        return new FixtureResult()
                 .setName(methodName)
                 .setStart(System.currentTimeMillis())
                 //.setDescription(method())
                 .setStage(Stage.RUNNING);
-        return fixtureResult;
     }
 
     private void addChildToContainer(final Optional<String> containerUuidOptional, final String childUuid) {

@@ -3,7 +3,7 @@ package wonder.model;
 /**
  * @author michelle
  */
-public class ClassTestResult {
+public class TestClassResult {
     private TestResult beforeGroupResult;
     private TestResult beforeTestResult;
 

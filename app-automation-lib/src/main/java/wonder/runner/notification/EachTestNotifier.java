@@ -1,4 +1,4 @@
-package wonder.runner.notifier;
+package wonder.runner.notification;
 
 import org.junit.internal.AssumptionViolatedException;
 import org.junit.runner.Description;

@@ -8,6 +8,7 @@ import org.junit.runners.model.Statement;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import wonder.model.TestClass;
+import wonder.runner.notification.Listener;
 
 import java.io.PrintWriter;
 import java.io.StringWriter;
@@ -21,12 +22,14 @@ public class AfterGroupRunner extends Runner {
     private final Statement statement;
     private final TestClass testClass;
     private final Method testMethod;
+    private final Listener listener;
     private Description description;
 
-    public AfterGroupRunner(TestClass testClass, Method testMethod, Statement statement) {
+    public AfterGroupRunner(TestClass testClass, Method testMethod, Statement statement, Listener listener) {
         this.testClass = testClass;
         this.testMethod = testMethod;
         this.statement = statement;
+        this.listener = listener;
     }
 
     @Override
@@ -37,18 +40,18 @@ public class AfterGroupRunner extends Runner {
 
     @Override
     public void run(RunNotifier notifier) {
-        notifier.fireAfterGroupStarted(description);
+        listener.afterGroupStarted(description);
         try {
             logger.info("Run After Group Starts");
             statement.evaluate();
         } catch (Throwable e) {
-            notifier.fireFixtureFailed(new Failure(getDescription(), e));
+            listener.fixtureFailed(new Failure(getDescription(), e));
             StringWriter stringWriter = new StringWriter();
             PrintWriter printWriter = new PrintWriter(stringWriter);
             e.printStackTrace(printWriter);
             logger.error("Run After Group Exception: " + stringWriter);
         } finally {
-            notifier.fireFixtureFinished();
+            listener.fixtureFinished();
         }
     }
 }

@@ -14,12 +14,13 @@ public class CheckCheckoutPageWebServiceImpl implements CheckCheckoutPageWebServ
 
     @Override
     public void prepareData() {
-        Allure.step("prepare group data",()-> Assert.assertEquals(1,1));
+        Allure.step("prepare group data", () -> Assert.assertEquals(1, 1));
     }
 
     @Override
     public void checkoutPageTest() {
         logger.info("test checkout page");
         Assert.assertEquals(1, 1);
+        Allure.step("hahhha");
     }
 }
