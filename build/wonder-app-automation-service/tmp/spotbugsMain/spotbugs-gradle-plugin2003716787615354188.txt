@@ -1,2 +1,0 @@
-/Users/mixuanchen/Documents/code/app-auto-core-ng2/build/wonder-app-automation-service/classes/java/main/wonder/cart/CheckCheckoutPageWebServiceImpl.class
-/Users/mixuanchen/Documents/code/app-auto-core-ng2/build/wonder-app-automation-service/classes/java/main/wonder/cart/CheckMergeShoppingCartWebServiceImpl.class

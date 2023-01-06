@@ -1,6 +1,0 @@
-Manifest-Version: 1.0
-Implementation-Title: wonder-app-automation-interface
-Implementation-Version: unspecified
-Created-By: 11.0.16.1 (Oracle Corporation)
-Built-With: gradle 7.4.2
-
